@@ -3,7 +3,6 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import 'normalize.css';
 import { getImages } from './api';
-import debounce from 'lodash.debounce';
 
 const PER_PAGE = 40;
 let searchQuery = '';
@@ -18,36 +17,16 @@ const refs = {
         '.search-form input[name="searchQuery"]'
     ),
     gallery: document.querySelector('.gallery'),
+    btnLoad: document.querySelector('.loading-btn'),
 };
 
 refs.formField.addEventListener('submit', onSubmit);
-window.addEventListener('scroll', debounce(onScroll, 300));
+// window.addEventListener('scroll', debounce(onScroll, 300));
 
 const lightBox = new SimpleLightbox('.gallery a', {
     captionsData: 'alt',
     captionDelay: 250,
     disableScroll: true,
-});
-lightBox.on('show.simplelightbox', () => {
-    const body = document.querySelector('body');
-    const bodyStyle = window.getComputedStyle(body);
-    const bodyWidth =
-        body.offsetWidth +
-        parseInt(bodyStyle.marginLeft) +
-        parseInt(bodyStyle.marginRight);
-    const verticalScrollBar = window.innerWidth - bodyWidth;
-
-    body.style.overflow = 'hidden';
-    body.style.paddingRight = verticalScrollBar + 'px';
-});
-
-lightBox.on('close.simplelightbox', () => {
-    const body = document.querySelector('body');
-
-    setTimeout(() => {
-        body.style.overflow = 'auto';
-        body.style.paddingRight = '';
-    }, 250);
 });
 
 function onSubmit(e) {
@@ -78,7 +57,6 @@ async function renderMarkup() {
             totalPages = Math.ceil(totalHits / PER_PAGE);
         }
         refs.gallery.insertAdjacentHTML('beforeend', createImageMarkup(hits));
-        isLoading = false;
         scroll();
 
         lightBox.refresh();
@@ -86,6 +64,8 @@ async function renderMarkup() {
         console.log(error.message);
         Notify.failure(`Oops, something went wrong: ${error.message}`);
     }
+    isLoading = false;
+    refs.btnLoad.classList.remove('is-hidden');
 }
 
 function createImageMarkup(imageList) {
@@ -110,10 +90,10 @@ function createImageMarkup(imageList) {
           loading="lazy" />
       </a>
       <div class="info">
-        <p class="info-item"><b>Likes</b>${likes}</p>
-        <p class="info-item"><b>Views</b>${views}</p>
-        <p class="info-item"><b>Comments</b>${comments}</p>
-        <p class="info-item"><b>Downloads</b>${downloads}</p>
+        <p class="info-item"><b>Likes: </b>${likes}</p>
+        <p class="info-item"><b>Views: </b>${views}</p>
+        <p class="info-item"><b>Comments: </b>${comments}</p>
+        <p class="info-item"><b>Downloads: </b>${downloads}</p>
       </div>
       
     </div>
@@ -124,7 +104,6 @@ function createImageMarkup(imageList) {
 
 function onLoadMore() {
     pageCount++;
-    // refs.loadMoreAuto.classList.remove('is-hidden');
     renderMarkup();
 }
 
@@ -143,16 +122,27 @@ function scroll() {
     });
 }
 
-function onScroll() {
-    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+refs.btnLoad.addEventListener('click', loadMore);
 
-    if (scrollTop + clientHeight >= scrollHeight - 5 && !isLoading) {
-        if (pageCount < totalPages) {
-            onLoadMore();
-        } else {
-            Notify.failure(
-                "We're sorry, but you've reached the end of search results."
-            );
-        }
+function loadMore() {
+    if (pageCount < totalPages) {
+        onLoadMore();
+    } else {
+        Notify.failure(
+            "We're sorry, but you've reached the end of search results."
+        );
+        refs.btnLoad.classList.add('is-hidden');
     }
 }
+
+// function onScroll() {
+//     const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+//     if (scrollTop + clientHeight >= scrollHeight - 5 && !isLoading) {
+//         if (pageCount < totalPages) {
+//             onLoadMore();
+//         } else {
+// Notify.failure("We're sorry, but you've reached the end of search results.");
+//         }
+//     }
+// }
