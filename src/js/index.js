@@ -97,7 +97,7 @@ function loadMore() {
 }
 
 function checkAndDisableLoadMoreBtn(response) {
-    total = response.totalHits;
+    let total = response.totalHits;
     let canBeLoadedMore = PER_PAGE * pageCount < total;
     if (!canBeLoadedMore) {
         refs.btnLoad.classList.add('is-hidden');
