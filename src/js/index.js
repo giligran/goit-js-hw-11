@@ -7,7 +7,7 @@ import { getImages } from './api';
 const PER_PAGE = 40;
 let searchQuery = '';
 let pageCount = 1;
-let isLoading = false;
+// let isLoading = false;
 let totalPages = 0;
 
 const refs = {
@@ -38,14 +38,16 @@ function onSubmit(e) {
     }
     refs.gallery.innerHTML = '';
     e.target.reset();
+    pageCount = 1;
     renderMarkup();
 }
 
 async function renderMarkup() {
-    isLoading = true;
+    // isLoading = true;
 
     try {
         const response = await getImages(searchQuery, pageCount);
+        console.log(response);
         const { totalHits, hits } = response;
         if (totalHits === 0) {
             Notify.failure(
@@ -63,9 +65,10 @@ async function renderMarkup() {
     } catch (error) {
         console.log(error.message);
         Notify.failure(`Oops, something went wrong: ${error.message}`);
+    } finally {
+        refs.btnLoad.classList.remove('is-hidden');
     }
-    isLoading = false;
-    refs.btnLoad.classList.remove('is-hidden');
+    // isLoading = false;
 }
 
 function createImageMarkup(imageList) {
